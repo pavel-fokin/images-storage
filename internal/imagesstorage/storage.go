@@ -1,17 +1,17 @@
-package images
+package imagesstorage
 
 import (
 	"context"
 	"io"
 )
 
-type ListUploader interface {
+type Storage interface {
 	Lister
 	Uploader
 }
 
 type Lister interface {
-	List(ctx context.Context) error
+	List(ctx context.Context) ([]Image, error)
 }
 
 type Uploader interface {

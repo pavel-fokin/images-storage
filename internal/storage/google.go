@@ -2,13 +2,14 @@ package storage
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 
 	"cloud.google.com/go/storage"
 	"google.golang.org/api/iterator"
+
+	"pavel-fokin/images-storage/internal/imagesstorage"
 )
 
 type Config struct {
@@ -36,10 +37,12 @@ func New(ctx context.Context, config Config) *Storage {
 	}
 }
 
-func (s *Storage) List(ctx context.Context) error {
-
+func (s *Storage) List(ctx context.Context) ([]imagesstorage.Image, error) {
 	query := &storage.Query{Prefix: ""}
 	it := s.bucket.Objects(ctx, query)
+
+	images := []imagesstorage.Image{}
+
 	for {
 		obj, err := it.Next()
 		if err == iterator.Done {
@@ -47,13 +50,13 @@ func (s *Storage) List(ctx context.Context) error {
 		}
 		if err != nil {
 			log.Printf("listBucket: unable to list bucket %q: %v", s.config.BucketName, err)
-			return err
+			return []imagesstorage.Image{}, err
 		}
 
-		fmt.Printf("%s %s\n", obj.Name, obj.ContentType)
+		images = append(images, s.asImage(obj))
 	}
 
-	return nil
+	return images, nil
 }
 
 func (s *Storage) Upload(
@@ -72,4 +75,13 @@ func (s *Storage) Upload(
 	wc.Write(buf)
 
 	return nil
+}
+
+func (s *Storage) asImage(obj *storage.ObjectAttrs) imagesstorage.Image {
+	return imagesstorage.Image{
+		Name:        obj.Name,
+		ContentType: obj.ContentType,
+		Size:        int(obj.Size),
+		UploadedAt:  obj.Updated.String(),
+	}
 }

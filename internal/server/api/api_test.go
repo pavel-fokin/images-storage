@@ -9,6 +9,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+
+	"pavel-fokin/images-storage/internal/imagesstorage"
 )
 
 type Images struct {
@@ -20,9 +22,9 @@ func (m *Images) Add(io.Reader, string) error {
 	return nil
 }
 
-func (m *Images) List(context.Context) error {
+func (m *Images) List(context.Context) ([]imagesstorage.Image, error) {
 	m.Called()
-	return nil
+	return []imagesstorage.Image{}, nil
 }
 
 func Test_ImagesGet(t *testing.T) {

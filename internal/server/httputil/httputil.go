@@ -1,10 +1,9 @@
 package httputil
 
 import (
-	"fmt"
 	"encoding/json"
+	"fmt"
 	"net/http"
-
 )
 
 type Error struct {
@@ -29,5 +28,14 @@ func AsErrorResponse(
 	payload.Data.Errors = []Error{{Message: fmt.Sprint(err)}}
 
 	// encode json
+	json.NewEncoder(w).Encode(payload)
+}
+
+func AsSuccessResponse(
+	w http.ResponseWriter, payload interface{}, statusCode int,
+) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+
 	json.NewEncoder(w).Encode(payload)
 }

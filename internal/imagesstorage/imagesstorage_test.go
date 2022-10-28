@@ -1,4 +1,4 @@
-package images
+package imagesstorage
 
 import (
 	"bytes"
@@ -10,23 +10,23 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type Storage struct {
+type StorageMock struct {
 	mock.Mock
 }
 
-func (m *Storage) List(ctx context.Context) error {
+func (m *StorageMock) List(ctx context.Context) ([]Image, error) {
 	m.Called()
-	return nil
+	return []Image{}, nil
 }
 
-func (m *Storage) Upload(ctx context.Context, filename string, contenttype string, data io.Reader) error {
+func (m *StorageMock) Upload(ctx context.Context, filename string, contenttype string, data io.Reader) error {
 	m.Called()
 	return nil
 }
 
 func Test_ImagesAdd(t *testing.T) {
 	// setup
-	storage := &Storage{}
+	storage := &StorageMock{}
 	storage.On("Upload").Return()
 
 	images := New(storage)
@@ -40,13 +40,13 @@ func Test_ImagesAdd(t *testing.T) {
 
 func Test_ImagesList(t *testing.T) {
 	// setup
-	storage := &Storage{}
+	storage := &StorageMock{}
 	storage.On("List").Return()
 
 	images := New(storage)
 
 	// test
-	err := images.List(context.TODO())
+	_, err := images.List(context.TODO())
 
 	// assert
 	assert.NoError(t, err)

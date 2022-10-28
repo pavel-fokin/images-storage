@@ -1,22 +1,30 @@
-package images
+package imagesstorage
 
 import (
 	"context"
 	"io"
 	"log"
+
 	// "image"
 	// _ "image/jpeg"
 
 	"github.com/google/uuid"
 )
 
-type ImageRaw io.Reader
-
-type ImagesStorage struct {
-	storage ListUploader
+type Image struct {
+	Name        string
+	ContentType string
+	Width       int
+	Height      int
+	Size        int
+	UploadedAt  string
 }
 
-func New(storage ListUploader) *ImagesStorage {
+type ImagesStorage struct {
+	storage Storage
+}
+
+func New(storage Storage) *ImagesStorage {
 	return &ImagesStorage{
 		storage: storage,
 	}
@@ -39,7 +47,10 @@ func (i *ImagesStorage) Add(data io.Reader, contenttype string) error {
 	return nil
 }
 
-func (i *ImagesStorage) List(ctx context.Context) error {
-	i.storage.List(ctx)
-	return nil
+func (i *ImagesStorage) List(ctx context.Context) ([]Image, error) {
+	images, err := i.storage.List(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return images, nil
 }

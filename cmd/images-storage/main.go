@@ -9,7 +9,7 @@ import (
 
 	"github.com/caarlos0/env/v6"
 
-	"pavel-fokin/images-storage/internal/images"
+	"pavel-fokin/images-storage/internal/imagesstorage"
 	"pavel-fokin/images-storage/internal/server"
 	"pavel-fokin/images-storage/internal/storage"
 )
@@ -39,10 +39,10 @@ func main() {
 
 	storage := storage.New(rootCtx, config.Storage)
 
-	images := images.New(storage)
+	imagesstorage := imagesstorage.New(storage)
 
 	httpServer := server.New(config.Server)
-	httpServer.SetupImagesAPIRoutes(images)
+	httpServer.SetupImagesAPIRoutes(imagesstorage)
 
 	go httpServer.Start()
 

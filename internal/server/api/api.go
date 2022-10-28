@@ -7,11 +7,12 @@ import (
 	"log"
 	"net/http"
 
+	"pavel-fokin/images-storage/internal/imagesstorage"
 	"pavel-fokin/images-storage/internal/server/httputil"
 )
 
 type ImagesStorage interface {
-	List(ctx context.Context) error
+	List(ctx context.Context) ([]imagesstorage.Image, error)
 	Add(data io.Reader, contenttype string) error
 }
 
@@ -25,12 +26,14 @@ func StatusOK(w http.ResponseWriter, r *http.Request) {
 
 func ImagesGet(images ImagesStorage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		err := images.List(r.Context())
+		images, err := images.List(r.Context())
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		w.WriteHeader(http.StatusOK)
+		resp := asImagesGetResponse(images)
+
+		httputil.AsSuccessResponse(w, resp, http.StatusOK)
 	}
 }
 
