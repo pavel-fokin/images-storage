@@ -1,19 +1,18 @@
 package api
 
 import (
+	"context"
 	"errors"
 	"io"
+	"log"
 	"net/http"
 
 	"pavel-fokin/images-storage/internal/server/httputil"
 )
 
-type ImagesAdder interface {
-	Add(io.Reader, string) error
-}
-
-type ImagesLister interface {
-	List() error
+type ImagesStorage interface {
+	List(ctx context.Context) error
+	Add(data io.Reader, contenttype string) error
 }
 
 var (
@@ -24,13 +23,18 @@ func StatusOK(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func ImagesGet(images ImagesLister) http.HandlerFunc {
+func ImagesGet(images ImagesStorage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		err := images.List(r.Context())
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		w.WriteHeader(http.StatusOK)
 	}
 }
 
-func ImagesPost(images ImagesAdder) http.HandlerFunc {
+func ImagesPost(images ImagesStorage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		contenttype, ok := r.Header["Content-Type"]

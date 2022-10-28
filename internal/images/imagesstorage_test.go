@@ -14,6 +14,11 @@ type Storage struct {
 	mock.Mock
 }
 
+func (m *Storage) List(ctx context.Context) error {
+	m.Called()
+	return nil
+}
+
 func (m *Storage) Upload(ctx context.Context, filename string, contenttype string, data io.Reader) error {
 	m.Called()
 	return nil
@@ -36,12 +41,12 @@ func Test_ImagesAdd(t *testing.T) {
 func Test_ImagesList(t *testing.T) {
 	// setup
 	storage := &Storage{}
-	storage.On("Upload").Return()
+	storage.On("List").Return()
 
 	images := New(storage)
 
 	// test
-	err := images.List()
+	err := images.List(context.TODO())
 
 	// assert
 	assert.NoError(t, err)

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -19,7 +20,7 @@ func (m *Images) Add(io.Reader, string) error {
 	return nil
 }
 
-func (m *Images) List() error {
+func (m *Images) List(context.Context) error {
 	m.Called()
 	return nil
 }

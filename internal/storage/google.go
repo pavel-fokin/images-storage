@@ -2,11 +2,13 @@ package storage
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 
 	"cloud.google.com/go/storage"
+	"google.golang.org/api/iterator"
 )
 
 type Config struct {
@@ -14,6 +16,7 @@ type Config struct {
 }
 
 type Storage struct {
+	config Config
 	client *storage.Client
 	bucket *storage.BucketHandle
 }
@@ -27,9 +30,30 @@ func New(ctx context.Context, config Config) *Storage {
 	bucket := client.Bucket(config.BucketName)
 
 	return &Storage{
+		config: config,
 		client: client,
 		bucket: bucket,
 	}
+}
+
+func (s *Storage) List(ctx context.Context) error {
+
+	query := &storage.Query{Prefix: ""}
+	it := s.bucket.Objects(ctx, query)
+	for {
+		obj, err := it.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			log.Printf("listBucket: unable to list bucket %q: %v", s.config.BucketName, err)
+			return err
+		}
+
+		fmt.Printf("%s %s\n", obj.Name, obj.ContentType)
+	}
+
+	return nil
 }
 
 func (s *Storage) Upload(
@@ -41,7 +65,7 @@ func (s *Storage) Upload(
 
 	buf, err := ioutil.ReadAll(data)
 	if err != nil {
-  	log.Println(err)
+		log.Println(err)
 		return err
 	}
 

@@ -8,23 +8,21 @@ import (
 	// _ "image/jpeg"
 
 	"github.com/google/uuid"
-
-	"pavel-fokin/images-storage/internal/storage"
 )
 
 type ImageRaw io.Reader
 
-type Images struct {
-	storage storage.StorageUploader
+type ImagesStorage struct {
+	storage ListUploader
 }
 
-func New(storage storage.StorageUploader) *Images {
-	return &Images{
+func New(storage ListUploader) *ImagesStorage {
+	return &ImagesStorage{
 		storage: storage,
 	}
 }
 
-func (i *Images) Add(data io.Reader, contenttype string) error {
+func (i *ImagesStorage) Add(data io.Reader, contenttype string) error {
 	// m, _, err := image.Decode(data)
 	// if err != nil {
 	// 	log.Fatal(err)
@@ -41,6 +39,7 @@ func (i *Images) Add(data io.Reader, contenttype string) error {
 	return nil
 }
 
-func (i *Images) List() error {
+func (i *ImagesStorage) List(ctx context.Context) error {
+	i.storage.List(ctx)
 	return nil
 }
