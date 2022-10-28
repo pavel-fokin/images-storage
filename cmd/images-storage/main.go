@@ -8,6 +8,7 @@ import (
 
   "github.com/caarlos0/env/v6"
 
+  "pavel-fokin/images-storage/internal/images"
   "pavel-fokin/images-storage/internal/server"
 )
 
@@ -30,8 +31,10 @@ func main () {
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 
+	images := images.New()
+
 	httpServer := server.New(config.Server)
-	httpServer.SetupImagesAPIRoutes()
+	httpServer.SetupImagesAPIRoutes(images)
 
 	go httpServer.Start()
 

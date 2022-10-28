@@ -12,4 +12,3 @@ func TestServerStartAndShutdown(t *testing.T) {
 	go s.Start()
 	s.Shutdown()
 }
-
