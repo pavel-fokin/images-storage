@@ -1,19 +1,22 @@
 package main
 
 import (
-  "fmt"
+	"context"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
 
-  "github.com/caarlos0/env/v6"
+	"github.com/caarlos0/env/v6"
 
-  "pavel-fokin/images-storage/internal/images"
-  "pavel-fokin/images-storage/internal/server"
+	"pavel-fokin/images-storage/internal/images"
+	"pavel-fokin/images-storage/internal/server"
+	"pavel-fokin/images-storage/internal/storage"
 )
 
 type Config struct {
-	Server server.Config
+	Server  server.Config
+	Storage storage.Config
 }
 
 func ReadConfig() *Config {
@@ -24,21 +27,26 @@ func ReadConfig() *Config {
 	return cfg
 }
 
-func main () {
+func main() {
 
 	config := ReadConfig()
+
+	rootCtx, cancelRootCtx := context.WithCancel(context.Background())
+	defer cancelRootCtx()
 
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 
-	images := images.New()
+	storage := storage.New(rootCtx, config.Storage)
+
+	images := images.New(storage)
 
 	httpServer := server.New(config.Server)
 	httpServer.SetupImagesAPIRoutes(images)
 
 	go httpServer.Start()
 
-	<- sig
+	<-sig
 
 	httpServer.Shutdown()
 }
