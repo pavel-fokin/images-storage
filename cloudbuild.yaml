@@ -1,0 +1,53 @@
+steps:
+  # Build image
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "-t",
+        "europe-north1-docker.pkg.dev/$PROJECT_ID/images-storage/images-storage:$SHORT_SHA",
+        "-t",
+        "europe-north1-docker.pkg.dev/$PROJECT_ID/images-storage/images-storage:latest",
+        ".",
+      ]
+
+  # Docker push to Google Artifact Registry
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "push",
+        "europe-north1-docker.pkg.dev/$PROJECT_ID/images-storage/images-storage:$SHORT_SHA",
+      ]
+
+  # Deploy to CloudRun
+  - name: "gcr.io/cloud-builders/gcloud"
+    args:
+      [
+        "run",
+        "deploy",
+        "images-storage",
+        "--image=europe-north1-docker.pkg.dev/$PROJECT_ID/images-storage/images-storage:$SHORT_SHA",
+        "--region",
+        "europe-north1",
+        "--platform",
+        "managed",
+        "--allow-unauthenticated",
+        "--set-secrets",
+        "/secrets/.env=images-storage-env:latest",
+        "--set-env-vars",
+        "IMAGES_STORAGE_ENV_FILE=/secrets/.env",
+        "--service-account",
+        "$_SERVICE_ACCOUNT",
+        "--min-instances",
+        "0",
+        "--max-instances",
+        "4",
+        "--memory",
+        "128Mi",
+        "--timeout",
+        "30",
+      ]
+
+images:
+  - "europe-north1-docker.pkg.dev/$PROJECT_ID/images-storage/images-storage:$SHORT_SHA"
+  - "europe-north1-docker.pkg.dev/$PROJECT_ID/images-storage/images-storage:latest"
