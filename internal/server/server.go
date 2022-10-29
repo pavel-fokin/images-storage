@@ -12,9 +12,9 @@ import (
 
 type Config struct {
 	Port            string `env:"PORT" envDefault:"8080"`
-	ReadTimeout     int    `env:"IMAGES_SERVER_READ_TIMEOUT" envDefault:"5"`
-	WriteTimeout    int    `env:"IMAGES_SERVER_WRITE_TIMEOUT" envDefault:"5"`
-	ShutdownTimeout int    `env:"IMAGES_SERVER_SHUTDOWN_TIMEOUT" envDefault:"5"`
+	ReadTimeout     int    `env:"IMAGES_SERVER_READ_TIMEOUT" envDefault:"30"`
+	WriteTimeout    int    `env:"IMAGES_SERVER_WRITE_TIMEOUT" envDefault:"30"`
+	ShutdownTimeout int    `env:"IMAGES_SERVER_SHUTDOWN_TIMEOUT" envDefault:"30"`
 }
 
 type Server struct {

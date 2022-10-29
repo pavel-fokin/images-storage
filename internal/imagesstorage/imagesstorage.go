@@ -30,7 +30,7 @@ func New(storage Storage) *ImagesStorage {
 	}
 }
 
-func (i *ImagesStorage) Add(data io.Reader, contenttype string) error {
+func (i *ImagesStorage) Add(ctx context.Context, data io.Reader, contenttype string) error {
 	// m, _, err := image.Decode(data)
 	// if err != nil {
 	// 	log.Fatal(err)
@@ -39,7 +39,7 @@ func (i *ImagesStorage) Add(data io.Reader, contenttype string) error {
 	// fmt.Println(m.Bounds())
 	filename := uuid.New().String()
 
-	err := i.storage.Upload(context.Background(), filename, contenttype, data)
+	err := i.storage.Upload(ctx, filename, contenttype, data)
 	if err != nil {
 		log.Fatal(err)
 	}

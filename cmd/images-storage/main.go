@@ -1,13 +1,14 @@
 package main
 
 import (
-	"context"
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/caarlos0/env/v6"
+	"github.com/joho/godotenv"
 
 	"pavel-fokin/images-storage/internal/imagesstorage"
 	"pavel-fokin/images-storage/internal/server"
@@ -20,6 +21,16 @@ type Config struct {
 }
 
 func ReadConfig() *Config {
+	envfile := "local.env"
+	if os.Getenv("IMAGES_STORAGE_ENV_FILE") != "" {
+		envfile = os.Getenv("IMAGES_STORAGE_ENV_FILE")
+	}
+
+	err := godotenv.Load(envfile)
+	if err != nil {
+		log.Println("Error loading .env file")
+	}
+
 	cfg := &Config{}
 	if err := env.Parse(cfg); err != nil {
 		fmt.Printf("%+v\n", err)
@@ -28,16 +39,12 @@ func ReadConfig() *Config {
 }
 
 func main() {
-
 	config := ReadConfig()
-
-	rootCtx, cancelRootCtx := context.WithCancel(context.Background())
-	defer cancelRootCtx()
 
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 
-	storage := storage.New(rootCtx, config.Storage)
+	storage := storage.New(config.Storage)
 
 	imagesstorage := imagesstorage.New(storage)
 

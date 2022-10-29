@@ -13,7 +13,7 @@ import (
 )
 
 type Config struct {
-	BucketName string `env:"IMAGES_STORAGE_GOOGLE_BUCKET_NAME" envDefault:""`
+	BucketName string `env:"IMAGES_STORAGE_GOOGLE_BUCKET_NAME,notEmpty" envDefault:""`
 }
 
 type Storage struct {
@@ -22,8 +22,8 @@ type Storage struct {
 	bucket *storage.BucketHandle
 }
 
-func New(ctx context.Context, config Config) *Storage {
-	client, err := storage.NewClient(ctx)
+func New(config Config) *Storage {
+	client, err := storage.NewClient(context.Background())
 	if err != nil {
 		log.Fatal(err)
 	}

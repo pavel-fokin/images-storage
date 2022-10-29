@@ -13,7 +13,7 @@ import (
 
 type ImagesStorage interface {
 	List(ctx context.Context) ([]imagesstorage.Image, error)
-	Add(data io.Reader, contenttype string) error
+	Add(ctx context.Context, data io.Reader, contenttype string) error
 }
 
 var (
@@ -46,7 +46,7 @@ func ImagesPost(images ImagesStorage) http.HandlerFunc {
 			return
 		}
 
-		images.Add(r.Body, contenttype[0])
+		images.Add(r.Context(), r.Body, contenttype[0])
 
 		w.WriteHeader(http.StatusOK)
 	}

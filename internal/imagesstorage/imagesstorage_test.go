@@ -32,7 +32,7 @@ func Test_ImagesAdd(t *testing.T) {
 	images := New(storage)
 
 	// test
-	err := images.Add(bytes.NewReader([]byte("")), "image/png")
+	err := images.Add(context.TODO(), bytes.NewReader([]byte("")), "image/png")
 
 	// assert
 	assert.NoError(t, err)

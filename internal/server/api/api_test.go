@@ -17,7 +17,7 @@ type Images struct {
 	mock.Mock
 }
 
-func (m *Images) Add(io.Reader, string) error {
+func (m *Images) Add(context.Context, io.Reader, string) error {
 	m.Called()
 	return nil
 }
