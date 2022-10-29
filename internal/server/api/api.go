@@ -16,6 +16,7 @@ import (
 var (
 	ErrValidate = errors.New("'Content-Type' is required")
 	ErrUpload   = errors.New("Coudn't upload an image")
+	ErrNotFound = errors.New("Image not found")
 )
 
 type ImagesStorage interface {
@@ -26,6 +27,9 @@ type ImagesStorage interface {
 	Metadata(
 		ctx context.Context, uuid string,
 	) (imagesstorage.Image, error)
+	Data(
+		ctx context.Context, uuid string,
+	) (data io.Reader, contenttype string, err error)
 }
 
 func StatusOK(w http.ResponseWriter, r *http.Request) {
@@ -51,12 +55,27 @@ func ImagesGetByID(images ImagesStorage) http.HandlerFunc {
 
 		image, err := images.Metadata(r.Context(), id)
 		if err != nil {
-			log.Fatal(err)
+			httputil.AsErrorResponse(w, ErrNotFound, http.StatusNotFound)
+			return
 		}
 
 		resp := asImagesPostResponse(image)
 
 		httputil.AsSuccessResponse(w, resp, http.StatusOK)
+	}
+}
+
+func ImagesGetDataByID(images ImagesStorage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := chi.URLParam(r, "id")
+
+		data, contenttype, err := images.Data(r.Context(), id)
+		if err != nil {
+			httputil.AsErrorResponse(w, ErrNotFound, http.StatusNotFound)
+			return
+		}
+
+		httputil.AsDataRepsonse(w, contenttype, data)
 	}
 }
 

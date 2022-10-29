@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"bytes"
 	"context"
 	"io"
 	"io/ioutil"
@@ -69,6 +70,19 @@ func (s *Storage) Metadata(
 	}
 
 	return s.asImage(objAttrs), nil
+}
+
+func (s *Storage) Download(
+	ctx context.Context, uuid string,
+) (io.Reader, string, error) {
+	r, err := s.bucket.Object(uuid).NewReader(ctx)
+	if err != nil {
+		log.Println(err)
+		return bytes.NewReader([]byte{}), "", err
+	}
+	defer r.Close()
+
+	return r, r.Attrs.ContentType, nil
 }
 
 func (s *Storage) Upload(

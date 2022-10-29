@@ -3,6 +3,7 @@ package httputil
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 )
 
@@ -38,4 +39,11 @@ func AsSuccessResponse(
 	w.WriteHeader(statusCode)
 
 	json.NewEncoder(w).Encode(payload)
+}
+
+func AsDataRepsonse(w http.ResponseWriter, contenttype string, data io.Reader) {
+	w.Header().Set("Content-Type", contenttype)
+	w.WriteHeader(http.StatusOK)
+
+	io.Copy(w, data)
 }

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"context"
 	"io"
 	"net/http"
@@ -20,6 +21,11 @@ type Images struct {
 func (m *Images) Add(context.Context, io.Reader, string) (imagesstorage.Image, error) {
 	m.Called()
 	return imagesstorage.Image{}, nil
+}
+
+func (m *Images) Data(context.Context, string) (io.Reader, string, error) {
+	m.Called()
+	return bytes.NewReader([]byte("")), "", nil
 }
 
 func (m *Images) Metadata(context.Context, string) (imagesstorage.Image, error) {

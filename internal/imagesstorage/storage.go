@@ -8,8 +8,11 @@ import (
 type Storage interface {
 	List(ctx context.Context) ([]Image, error)
 	Upload(
-		ctx context.Context, filename string, contenttype string, data io.Reader,
+		ctx context.Context, uuid string, contenttype string, data io.Reader,
 	) (Image, error)
+	Download(
+		ctx context.Context, uuid string,
+	) (io.Reader, string, error)
 	Metadata(
 		ctx context.Context, uuid string,
 	) (Image, error)

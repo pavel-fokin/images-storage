@@ -1,6 +1,7 @@
 package imagesstorage
 
 import (
+	"bytes"
 	"context"
 	"io"
 	"log"
@@ -58,6 +59,18 @@ func (i *ImagesStorage) Metadata(
 	}
 
 	return image, nil
+}
+
+func (i *ImagesStorage) Data(
+	ctx context.Context, uuid string,
+) (io.Reader, string, error) {
+	data, contenttype, err := i.storage.Download(ctx, uuid)
+	if err != nil {
+		log.Println(err)
+		return bytes.NewReader([]byte{}), "", err
+	}
+
+	return data, contenttype, nil
 }
 
 func (i *ImagesStorage) List(ctx context.Context) ([]Image, error) {

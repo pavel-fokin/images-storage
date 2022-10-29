@@ -20,10 +20,17 @@ func (m *StorageMock) List(ctx context.Context) ([]Image, error) {
 }
 
 func (m *StorageMock) Upload(
-	ctx context.Context, filename string, contenttype string, data io.Reader,
+	ctx context.Context, uuid string, contenttype string, data io.Reader,
 ) (Image, error) {
 	m.Called()
 	return Image{}, nil
+}
+
+func (m *StorageMock) Download(
+	ctx context.Context, uuid string,
+) (io.Reader, string, error) {
+	m.Called()
+	return bytes.NewReader([]byte{}), "", nil
 }
 
 func (m *StorageMock) Metadata(
@@ -41,7 +48,7 @@ func Test_ImagesAdd(t *testing.T) {
 	images := New(storage)
 
 	// test
-	_, err := images.Add(context.TODO(), bytes.NewReader([]byte("")), "image/png")
+	_, err := images.Add(context.TODO(), bytes.NewReader([]byte{}), "image/png")
 
 	// assert
 	assert.NoError(t, err)
