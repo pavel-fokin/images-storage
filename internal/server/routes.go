@@ -9,4 +9,5 @@ func (s *Server) SetupImagesAPIRoutes(imagesstorage api.ImagesStorage) {
 	s.router.Post("/v1/images", api.ImagesPost(imagesstorage))
 	s.router.Get("/v1/images/{id}", api.ImagesGetByID(imagesstorage))
 	s.router.Get("/v1/images/{id}/data", api.ImagesGetDataByID(imagesstorage))
+	s.router.Put("/v1/images/{id}", api.ImagesPutByID(imagesstorage))
 }

@@ -26,6 +26,13 @@ func (m *StorageMock) Upload(
 	return Image{}, nil
 }
 
+func (m *StorageMock) DoesExist(
+	ctx context.Context, uuid string,
+) bool {
+	m.Called()
+	return true
+}
+
 func (m *StorageMock) Download(
 	ctx context.Context, uuid string,
 ) (io.Reader, string, error) {

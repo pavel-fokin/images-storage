@@ -3,13 +3,15 @@ package imagesstorage
 import (
 	"bytes"
 	"context"
+	"errors"
 	"io"
 	"log"
 
-	// "image"
-	// _ "image/jpeg"
-
 	"github.com/google/uuid"
+)
+
+var (
+	ErrImageNotExist = errors.New("Image doesn't exist")
 )
 
 type Image struct {
@@ -34,17 +36,27 @@ func New(storage Storage) *ImagesStorage {
 func (i *ImagesStorage) Add(
 	ctx context.Context, data io.Reader, contenttype string,
 ) (Image, error) {
-	// m, _, err := image.Decode(data)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
 
-	// fmt.Println(m.Bounds())
 	uuid := uuid.New().String()
 
 	image, err := i.storage.Upload(ctx, uuid, contenttype, data)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	return image, nil
+}
+
+func (i *ImagesStorage) Update(
+	ctx context.Context, uuid string, data io.Reader, contenttype string,
+) (Image, error) {
+	if doesExist := i.storage.DoesExist(ctx, uuid); !doesExist {
+		return Image{}, ErrImageNotExist
+	}
+
+	image, err := i.storage.Upload(ctx, uuid, contenttype, data)
+	if err != nil {
+		return Image{}, err
 	}
 
 	return image, nil

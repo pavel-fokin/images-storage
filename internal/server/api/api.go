@@ -24,6 +24,9 @@ type ImagesStorage interface {
 	Add(
 		ctx context.Context, data io.Reader, contenttype string,
 	) (imagesstorage.Image, error)
+	Update(
+		ctx context.Context, uuid string, data io.Reader, contenttype string,
+	) (imagesstorage.Image, error)
 	Metadata(
 		ctx context.Context, uuid string,
 	) (imagesstorage.Image, error)
@@ -44,6 +47,32 @@ func ImagesGet(images ImagesStorage) http.HandlerFunc {
 		}
 
 		resp := asImagesGetResponse(images)
+
+		httputil.AsSuccessResponse(w, resp, http.StatusOK)
+	}
+}
+
+func ImagesPutByID(images ImagesStorage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := chi.URLParam(r, "id")
+
+		contenttype, ok := r.Header["Content-Type"]
+		if !ok {
+			httputil.AsErrorResponse(w, ErrValidate, http.StatusBadRequest)
+			return
+		}
+
+		image, err := images.Update(r.Context(), id, r.Body, contenttype[0])
+		if err == imagesstorage.ErrImageNotExist {
+			httputil.AsErrorResponse(w, ErrNotFound, http.StatusNotFound)
+			return
+		}
+		if err != nil {
+			httputil.AsErrorResponse(w, ErrUpload, http.StatusInternalServerError)
+			return
+		}
+
+		resp := asImagesPostResponse(image)
 
 		httputil.AsSuccessResponse(w, resp, http.StatusOK)
 	}

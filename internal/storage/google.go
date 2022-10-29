@@ -72,6 +72,17 @@ func (s *Storage) Metadata(
 	return s.asImage(objAttrs), nil
 }
 
+func (s *Storage) DoesExist(
+	ctx context.Context, filename string,
+) bool {
+	_, err := s.bucket.Object(filename).Attrs(ctx)
+	if err == storage.ErrObjectNotExist {
+		return false
+	}
+
+	return true
+}
+
 func (s *Storage) Download(
 	ctx context.Context, uuid string,
 ) (io.Reader, string, error) {

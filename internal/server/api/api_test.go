@@ -23,9 +23,14 @@ func (m *Images) Add(context.Context, io.Reader, string) (imagesstorage.Image, e
 	return imagesstorage.Image{}, nil
 }
 
+func (m *Images) Update(context.Context, string, io.Reader, string) (imagesstorage.Image, error) {
+	m.Called()
+	return imagesstorage.Image{}, nil
+}
+
 func (m *Images) Data(context.Context, string) (io.Reader, string, error) {
 	m.Called()
-	return bytes.NewReader([]byte("")), "", nil
+	return bytes.NewReader([]byte{}), "", nil
 }
 
 func (m *Images) Metadata(context.Context, string) (imagesstorage.Image, error) {
