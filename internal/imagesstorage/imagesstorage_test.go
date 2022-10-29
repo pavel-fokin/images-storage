@@ -20,7 +20,11 @@ func (m *StorageMock) List(ctx context.Context) ([]Image, error) {
 }
 
 func (m *StorageMock) Upload(
-	ctx context.Context, uuid string, contenttype string, data io.Reader,
+	ctx context.Context,
+	uuid string,
+	contenttype string,
+	data io.Reader,
+	metadata map[string]string,
 ) (Image, error) {
 	m.Called()
 	return Image{}, nil

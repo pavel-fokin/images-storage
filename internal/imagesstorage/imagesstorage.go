@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 
 	"github.com/google/uuid"
@@ -39,7 +41,20 @@ func (i *ImagesStorage) Add(
 
 	uuid := uuid.New().String()
 
-	image, err := i.storage.Upload(ctx, uuid, contenttype, data)
+	buf, err := ioutil.ReadAll(data)
+	if err != nil {
+		log.Println(err)
+		return Image{}, err
+	}
+
+	width, height := GetWidthHeight(bytes.NewReader(buf))
+	// log.Printf("%d-%d \n", width, height)
+	metadata := map[string]string{
+		"ImageWidth":  fmt.Sprint(width),
+		"ImageHeight": fmt.Sprint(height),
+	}
+
+	image, err := i.storage.Upload(ctx, uuid, contenttype, bytes.NewReader(buf), metadata)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -54,7 +69,20 @@ func (i *ImagesStorage) Update(
 		return Image{}, ErrImageNotExist
 	}
 
-	image, err := i.storage.Upload(ctx, uuid, contenttype, data)
+	buf, err := ioutil.ReadAll(data)
+	if err != nil {
+		log.Println(err)
+		return Image{}, err
+	}
+
+	width, height := GetWidthHeight(bytes.NewReader(buf))
+	// log.Printf("%d-%d \n", width, height)
+	metadata := map[string]string{
+		"ImageWidth":  fmt.Sprint(width),
+		"ImageHeight": fmt.Sprint(height),
+	}
+
+	image, err := i.storage.Upload(ctx, uuid, contenttype, bytes.NewReader(buf), metadata)
 	if err != nil {
 		return Image{}, err
 	}

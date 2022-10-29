@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"io"
-	"io/ioutil"
 	"log"
 
 	"cloud.google.com/go/storage"
@@ -39,8 +38,7 @@ func New(config Config) *Storage {
 }
 
 func (s *Storage) List(ctx context.Context) ([]imagesstorage.Image, error) {
-	query := &storage.Query{Prefix: ""}
-	it := s.bucket.Objects(ctx, query)
+	it := s.bucket.Objects(ctx, &storage.Query{})
 
 	images := []imagesstorage.Image{}
 
@@ -97,24 +95,26 @@ func (s *Storage) Download(
 }
 
 func (s *Storage) Upload(
-	ctx context.Context, filename string, contenttype string, data io.Reader,
+	ctx context.Context, filename string, contenttype string, data io.Reader, metadata map[string]string,
 ) (imagesstorage.Image, error) {
 	wc := s.bucket.Object(filename).NewWriter(ctx)
 	wc.ContentType = contenttype
+	wc.Metadata = metadata
 	defer wc.Close()
 
-	buf, err := ioutil.ReadAll(data)
-	if err != nil {
-		log.Println(err)
-		return imagesstorage.Image{}, err
-	}
+	// buf, err := ioutil.ReadAll(data)
+	// if err != nil {
+	// 	log.Println(err)
+	// 	return imagesstorage.Image{}, err
+	// }
 
-	wc.Write(buf)
+	// wc.Write(buf)
+	io.Copy(wc, data)
 
 	image := imagesstorage.Image{
 		Name:        filename,
 		ContentType: contenttype,
-		Size:        len(buf),
+		// Size:      data.Len(),
 	}
 
 	return image, nil
