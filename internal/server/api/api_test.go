@@ -17,9 +17,14 @@ type Images struct {
 	mock.Mock
 }
 
-func (m *Images) Add(context.Context, io.Reader, string) error {
+func (m *Images) Add(context.Context, io.Reader, string) (imagesstorage.Image, error) {
 	m.Called()
-	return nil
+	return imagesstorage.Image{}, nil
+}
+
+func (m *Images) Metadata(context.Context, string) (imagesstorage.Image, error) {
+	m.Called()
+	return imagesstorage.Image{}, nil
 }
 
 func (m *Images) List(context.Context) ([]imagesstorage.Image, error) {
@@ -74,5 +79,5 @@ func Test_ImagesPostSuccess(t *testing.T) {
 
 	// assert
 	resp := w.Result()
-	assert.Equal(t, 200, resp.StatusCode)
+	assert.Equal(t, 201, resp.StatusCode)
 }

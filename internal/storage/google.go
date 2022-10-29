@@ -59,9 +59,21 @@ func (s *Storage) List(ctx context.Context) ([]imagesstorage.Image, error) {
 	return images, nil
 }
 
+func (s *Storage) Metadata(
+	ctx context.Context, filename string,
+) (imagesstorage.Image, error) {
+	objAttrs, err := s.bucket.Object(filename).Attrs(ctx)
+	if err != nil {
+		log.Println(err)
+		return imagesstorage.Image{}, err
+	}
+
+	return s.asImage(objAttrs), nil
+}
+
 func (s *Storage) Upload(
 	ctx context.Context, filename string, contenttype string, data io.Reader,
-) error {
+) (imagesstorage.Image, error) {
 	wc := s.bucket.Object(filename).NewWriter(ctx)
 	wc.ContentType = contenttype
 	defer wc.Close()
@@ -69,12 +81,18 @@ func (s *Storage) Upload(
 	buf, err := ioutil.ReadAll(data)
 	if err != nil {
 		log.Println(err)
-		return err
+		return imagesstorage.Image{}, err
 	}
 
 	wc.Write(buf)
 
-	return nil
+	image := imagesstorage.Image{
+		Name:        filename,
+		ContentType: contenttype,
+		Size:        len(buf),
+	}
+
+	return image, nil
 }
 
 func (s *Storage) asImage(obj *storage.ObjectAttrs) imagesstorage.Image {

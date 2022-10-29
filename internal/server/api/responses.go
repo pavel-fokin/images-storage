@@ -19,6 +19,12 @@ type ImagesGetResp struct {
 	} `json:"data"`
 }
 
+type ImagesPostResp struct {
+	Data struct {
+		Image ResponseImage `json:"image"`
+	} `json:"data"`
+}
+
 func asResponseImage(image imagesstorage.Image) ResponseImage {
 	return ResponseImage{
 		Name:       image.Name,
@@ -36,6 +42,14 @@ func asImagesGetResponse(images []imagesstorage.Image) ImagesGetResp {
 	for _, image := range images {
 		resp.Data.Images = append(resp.Data.Images, asResponseImage(image))
 	}
+
+	return resp
+}
+
+func asImagesPostResponse(image imagesstorage.Image) ImagesPostResp {
+	resp := ImagesPostResp{}
+
+	resp.Data.Image = asResponseImage(image)
 
 	return resp
 }

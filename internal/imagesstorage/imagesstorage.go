@@ -30,21 +30,34 @@ func New(storage Storage) *ImagesStorage {
 	}
 }
 
-func (i *ImagesStorage) Add(ctx context.Context, data io.Reader, contenttype string) error {
+func (i *ImagesStorage) Add(
+	ctx context.Context, data io.Reader, contenttype string,
+) (Image, error) {
 	// m, _, err := image.Decode(data)
 	// if err != nil {
 	// 	log.Fatal(err)
 	// }
 
 	// fmt.Println(m.Bounds())
-	filename := uuid.New().String()
+	uuid := uuid.New().String()
 
-	err := i.storage.Upload(ctx, filename, contenttype, data)
+	image, err := i.storage.Upload(ctx, uuid, contenttype, data)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return nil
+	return image, nil
+}
+
+func (i *ImagesStorage) Metadata(
+	ctx context.Context, uuid string,
+) (Image, error) {
+	image, err := i.storage.Metadata(ctx, uuid)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return image, nil
 }
 
 func (i *ImagesStorage) List(ctx context.Context) ([]Image, error) {

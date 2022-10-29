@@ -7,18 +7,26 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
+
 	"pavel-fokin/images-storage/internal/imagesstorage"
 	"pavel-fokin/images-storage/internal/server/httputil"
 )
 
-type ImagesStorage interface {
-	List(ctx context.Context) ([]imagesstorage.Image, error)
-	Add(ctx context.Context, data io.Reader, contenttype string) error
-}
-
 var (
 	ErrValidate = errors.New("'Content-Type' is required")
+	ErrUpload   = errors.New("Coudn't upload an image")
 )
+
+type ImagesStorage interface {
+	List(ctx context.Context) ([]imagesstorage.Image, error)
+	Add(
+		ctx context.Context, data io.Reader, contenttype string,
+	) (imagesstorage.Image, error)
+	Metadata(
+		ctx context.Context, uuid string,
+	) (imagesstorage.Image, error)
+}
 
 func StatusOK(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
@@ -37,6 +45,21 @@ func ImagesGet(images ImagesStorage) http.HandlerFunc {
 	}
 }
 
+func ImagesGetByID(images ImagesStorage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := chi.URLParam(r, "id")
+
+		image, err := images.Metadata(r.Context(), id)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		resp := asImagesPostResponse(image)
+
+		httputil.AsSuccessResponse(w, resp, http.StatusOK)
+	}
+}
+
 func ImagesPost(images ImagesStorage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -46,8 +69,14 @@ func ImagesPost(images ImagesStorage) http.HandlerFunc {
 			return
 		}
 
-		images.Add(r.Context(), r.Body, contenttype[0])
+		image, err := images.Add(r.Context(), r.Body, contenttype[0])
+		if err != nil {
+			httputil.AsErrorResponse(w, ErrUpload, http.StatusInternalServerError)
+			return
+		}
 
-		w.WriteHeader(http.StatusOK)
+		resp := asImagesPostResponse(image)
+
+		httputil.AsSuccessResponse(w, resp, http.StatusCreated)
 	}
 }
