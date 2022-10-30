@@ -31,7 +31,7 @@ type ImagesStorage interface {
 		ctx context.Context, uuid string,
 	) (imagesstorage.Image, error)
 	Data(
-		ctx context.Context, uuid string,
+		ctx context.Context, uuid string, bbox imagesstorage.BBox,
 	) (data io.Reader, contenttype string, err error)
 }
 
@@ -98,7 +98,15 @@ func ImagesGetDataByID(images ImagesStorage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
 
-		data, contenttype, err := images.Data(r.Context(), id)
+		// TODO Add validation
+		bboxParam := r.URL.Query().Get("bbox")
+		bbox := imagesstorage.BBox{}
+		if bboxParam != "" {
+			bbox.X, bbox.Y, bbox.W, bbox.H = ParseBBoxParam(bboxParam)
+		}
+
+		// TODO More errors handling
+		data, contenttype, err := images.Data(r.Context(), id, bbox)
 		if err != nil {
 			httputil.AsErrorResponse(w, ErrNotFound, http.StatusNotFound)
 			return

@@ -28,7 +28,7 @@ func (m *Images) Update(context.Context, string, io.Reader, string) (imagesstora
 	return imagesstorage.Image{}, nil
 }
 
-func (m *Images) Data(context.Context, string) (io.Reader, string, error) {
+func (m *Images) Data(context.Context, string, imagesstorage.BBox) (io.Reader, string, error) {
 	m.Called()
 	return bytes.NewReader([]byte{}), "", nil
 }

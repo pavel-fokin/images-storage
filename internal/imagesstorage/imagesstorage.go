@@ -48,7 +48,6 @@ func (i *ImagesStorage) Add(
 	}
 
 	width, height := GetWidthHeight(bytes.NewReader(buf))
-	// log.Printf("%d-%d \n", width, height)
 	metadata := map[string]string{
 		"ImageWidth":  fmt.Sprint(width),
 		"ImageHeight": fmt.Sprint(height),
@@ -76,7 +75,6 @@ func (i *ImagesStorage) Update(
 	}
 
 	width, height := GetWidthHeight(bytes.NewReader(buf))
-	// log.Printf("%d-%d \n", width, height)
 	metadata := map[string]string{
 		"ImageWidth":  fmt.Sprint(width),
 		"ImageHeight": fmt.Sprint(height),
@@ -102,12 +100,16 @@ func (i *ImagesStorage) Metadata(
 }
 
 func (i *ImagesStorage) Data(
-	ctx context.Context, uuid string,
+	ctx context.Context, uuid string, bbox BBox,
 ) (io.Reader, string, error) {
 	data, contenttype, err := i.storage.Download(ctx, uuid)
 	if err != nil {
 		log.Println(err)
 		return bytes.NewReader([]byte{}), "", err
+	}
+
+	if bbox.Valid() {
+		data = CutOut(data, bbox)
 	}
 
 	return data, contenttype, nil
