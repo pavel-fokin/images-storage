@@ -1,8 +1,6 @@
 package api
 
-import (
-	"pavel-fokin/images-storage/internal/imagesstorage"
-)
+import "github.com/pavel-fokin/images-storage/internal/imagesstorage"
 
 type ResponseImage struct {
 	Name       string `json:"name"`

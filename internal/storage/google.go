@@ -3,13 +3,17 @@ package storage
 import (
 	"bytes"
 	"context"
+	"fmt"
+
+	// "errors"
 	"io"
 	"log"
 
 	"cloud.google.com/go/storage"
+	"github.com/pkg/errors"
 	"google.golang.org/api/iterator"
 
-	"pavel-fokin/images-storage/internal/imagesstorage"
+	"github.com/pavel-fokin/images-storage/internal/imagesstorage"
 )
 
 type Config struct {
@@ -48,8 +52,7 @@ func (s *Storage) List(ctx context.Context) ([]imagesstorage.Image, error) {
 			break
 		}
 		if err != nil {
-			log.Printf("listBucket: unable to list bucket %q: %v", s.config.BucketName, err)
-			return []imagesstorage.Image{}, err
+			return []imagesstorage.Image{}, fmt.Errorf("List(): %w", err)
 		}
 
 		images = append(images, s.asImage(obj))
@@ -63,8 +66,12 @@ func (s *Storage) Metadata(
 ) (imagesstorage.Image, error) {
 	objAttrs, err := s.bucket.Object(filename).Attrs(ctx)
 	if err != nil {
-		log.Println(err)
-		return imagesstorage.Image{}, err
+		switch {
+		case errors.Is(err, storage.ErrObjectNotExist):
+			return imagesstorage.Image{}, imagesstorage.ErrImageNotExist
+		default:
+			return imagesstorage.Image{}, fmt.Errorf("Metadata(): %w", err)
+		}
 	}
 
 	return s.asImage(objAttrs), nil
@@ -74,11 +81,12 @@ func (s *Storage) DoesExist(
 	ctx context.Context, filename string,
 ) bool {
 	_, err := s.bucket.Object(filename).Attrs(ctx)
-	if err == storage.ErrObjectNotExist {
+	switch {
+	case errors.Is(err, storage.ErrObjectNotExist):
+		return true
+	default:
 		return false
 	}
-
-	return true
 }
 
 func (s *Storage) Download(
@@ -86,8 +94,12 @@ func (s *Storage) Download(
 ) (io.Reader, string, error) {
 	r, err := s.bucket.Object(uuid).NewReader(ctx)
 	if err != nil {
-		log.Println(err)
-		return bytes.NewReader([]byte{}), "", err
+		switch {
+		case errors.Is(err, storage.ErrObjectNotExist):
+			return bytes.NewReader([]byte{}), "", imagesstorage.ErrImageNotExist
+		default:
+			return bytes.NewReader([]byte{}), "", fmt.Errorf("Download(): %w", err)
+		}
 	}
 	defer r.Close()
 
@@ -102,19 +114,14 @@ func (s *Storage) Upload(
 	wc.Metadata = metadata
 	defer wc.Close()
 
-	// buf, err := ioutil.ReadAll(data)
-	// if err != nil {
-	// 	log.Println(err)
-	// 	return imagesstorage.Image{}, err
-	// }
-
-	// wc.Write(buf)
-	io.Copy(wc, data)
+	_, err := io.Copy(wc, data)
+	if err != nil {
+		return imagesstorage.Image{}, fmt.Errorf("Upload(): %w", err)
+	}
 
 	image := imagesstorage.Image{
 		Name:        filename,
 		ContentType: contenttype,
-		// Size:      data.Len(),
 	}
 
 	return image, nil

@@ -6,8 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
-	"log"
 
 	"github.com/google/uuid"
 )
@@ -41,13 +39,15 @@ func (i *ImagesStorage) Add(
 
 	uuid := uuid.New().String()
 
-	buf, err := ioutil.ReadAll(data)
+	buf, err := io.ReadAll(data)
 	if err != nil {
-		log.Println(err)
-		return Image{}, err
+		return Image{}, fmt.Errorf("Add(): %w", err)
 	}
 
-	width, height := GetWidthHeight(bytes.NewReader(buf))
+	width, height, err := GetWidthHeight(bytes.NewReader(buf))
+	if err != nil {
+		return Image{}, fmt.Errorf("Add(): %w", err)
+	}
 	metadata := map[string]string{
 		"ImageWidth":  fmt.Sprint(width),
 		"ImageHeight": fmt.Sprint(height),
@@ -55,7 +55,7 @@ func (i *ImagesStorage) Add(
 
 	image, err := i.storage.Upload(ctx, uuid, contenttype, bytes.NewReader(buf), metadata)
 	if err != nil {
-		log.Fatal(err)
+		return Image{}, fmt.Errorf("Add(): %w", err)
 	}
 
 	return image, nil
@@ -68,13 +68,15 @@ func (i *ImagesStorage) Update(
 		return Image{}, ErrImageNotExist
 	}
 
-	buf, err := ioutil.ReadAll(data)
+	buf, err := io.ReadAll(data)
 	if err != nil {
-		log.Println(err)
-		return Image{}, err
+		return Image{}, fmt.Errorf("Updates(): %w", err)
 	}
 
-	width, height := GetWidthHeight(bytes.NewReader(buf))
+	width, height, err := GetWidthHeight(bytes.NewReader(buf))
+	if err != nil {
+		return Image{}, fmt.Errorf("Update(): %w", err)
+	}
 	metadata := map[string]string{
 		"ImageWidth":  fmt.Sprint(width),
 		"ImageHeight": fmt.Sprint(height),
@@ -82,7 +84,7 @@ func (i *ImagesStorage) Update(
 
 	image, err := i.storage.Upload(ctx, uuid, contenttype, bytes.NewReader(buf), metadata)
 	if err != nil {
-		return Image{}, err
+		return Image{}, fmt.Errorf("Updates(): %w", err)
 	}
 
 	return image, nil
@@ -93,7 +95,7 @@ func (i *ImagesStorage) Metadata(
 ) (Image, error) {
 	image, err := i.storage.Metadata(ctx, uuid)
 	if err != nil {
-		log.Fatal(err)
+		return Image{}, fmt.Errorf("Metadata(): %w", err)
 	}
 
 	return image, nil
@@ -104,12 +106,14 @@ func (i *ImagesStorage) Data(
 ) (io.Reader, string, error) {
 	data, contenttype, err := i.storage.Download(ctx, uuid)
 	if err != nil {
-		log.Println(err)
-		return bytes.NewReader([]byte{}), "", err
+		return bytes.NewReader([]byte{}), "", fmt.Errorf("Data(): %w", err)
 	}
 
 	if bbox.Valid() {
-		data = CutOut(data, bbox)
+		data, err = CutOut(data, bbox)
+		if err != nil {
+			return bytes.NewReader([]byte{}), "", fmt.Errorf("Data(): %w", err)
+		}
 	}
 
 	return data, contenttype, nil
@@ -118,7 +122,7 @@ func (i *ImagesStorage) Data(
 func (i *ImagesStorage) List(ctx context.Context) ([]Image, error) {
 	images, err := i.storage.List(ctx)
 	if err != nil {
-		log.Fatal(err)
+		return []Image{}, fmt.Errorf("List(): %w", err)
 	}
 	return images, nil
 }

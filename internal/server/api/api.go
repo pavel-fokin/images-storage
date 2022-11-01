@@ -2,21 +2,22 @@ package api
 
 import (
 	"context"
-	"errors"
 	"io"
-	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/juju/errors"
 
-	"pavel-fokin/images-storage/internal/imagesstorage"
-	"pavel-fokin/images-storage/internal/server/httputil"
+	"github.com/pavel-fokin/images-storage/internal/imagesstorage"
+	"github.com/pavel-fokin/images-storage/internal/log"
+	"github.com/pavel-fokin/images-storage/internal/server/httputil"
 )
 
 var (
 	ErrValidate = errors.New("'Content-Type' is required")
 	ErrUpload   = errors.New("Coudn't upload an image")
 	ErrNotFound = errors.New("Image not found")
+	ErrUnknown  = errors.New(`Unkown error ¯\_(ツ)_/¯`)
 )
 
 type ImagesStorage interface {
@@ -43,7 +44,14 @@ func ImagesGet(images ImagesStorage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		images, err := images.List(r.Context())
 		if err != nil {
-			log.Fatal(err)
+			switch {
+			case errors.Is(err, imagesstorage.ErrImageNotExist):
+				httputil.AsErrorResponse(w, ErrNotFound, http.StatusNotFound)
+			default:
+				log.Error(r.Context(), err, "")
+				httputil.AsErrorResponse(w, ErrUpload, http.StatusInternalServerError)
+			}
+			return
 		}
 
 		resp := asImagesGetResponse(images)
@@ -63,12 +71,14 @@ func ImagesPutByID(images ImagesStorage) http.HandlerFunc {
 		}
 
 		image, err := images.Update(r.Context(), id, r.Body, contenttype[0])
-		if err == imagesstorage.ErrImageNotExist {
-			httputil.AsErrorResponse(w, ErrNotFound, http.StatusNotFound)
-			return
-		}
 		if err != nil {
-			httputil.AsErrorResponse(w, ErrUpload, http.StatusInternalServerError)
+			switch {
+			case errors.Is(err, imagesstorage.ErrImageNotExist):
+				httputil.AsErrorResponse(w, ErrNotFound, http.StatusNotFound)
+			default:
+				log.Error(r.Context(), err, "")
+				httputil.AsErrorResponse(w, ErrUpload, http.StatusInternalServerError)
+			}
 			return
 		}
 
@@ -84,7 +94,14 @@ func ImagesGetByID(images ImagesStorage) http.HandlerFunc {
 
 		image, err := images.Metadata(r.Context(), id)
 		if err != nil {
-			httputil.AsErrorResponse(w, ErrNotFound, http.StatusNotFound)
+			switch {
+			case errors.Is(err, imagesstorage.ErrImageNotExist):
+				httputil.AsErrorResponse(w, ErrNotFound, http.StatusNotFound)
+			default:
+				log.Error(r.Context(), err, "")
+				httputil.AsErrorResponse(w, ErrUpload, http.StatusInternalServerError)
+
+			}
 			return
 		}
 
@@ -108,7 +125,13 @@ func ImagesGetDataByID(images ImagesStorage) http.HandlerFunc {
 		// TODO More errors handling
 		data, contenttype, err := images.Data(r.Context(), id, bbox)
 		if err != nil {
-			httputil.AsErrorResponse(w, ErrNotFound, http.StatusNotFound)
+			switch {
+			case errors.Is(err, imagesstorage.ErrImageNotExist):
+				httputil.AsErrorResponse(w, ErrNotFound, http.StatusNotFound)
+			default:
+				log.Error(r.Context(), err, "")
+				httputil.AsErrorResponse(w, ErrUpload, http.StatusInternalServerError)
+			}
 			return
 		}
 
@@ -119,6 +142,7 @@ func ImagesGetDataByID(images ImagesStorage) http.HandlerFunc {
 func ImagesPost(images ImagesStorage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
+		// TODO More validation
 		contenttype, ok := r.Header["Content-Type"]
 		if !ok {
 			httputil.AsErrorResponse(w, ErrValidate, http.StatusBadRequest)
@@ -127,6 +151,7 @@ func ImagesPost(images ImagesStorage) http.HandlerFunc {
 
 		image, err := images.Add(r.Context(), r.Body, contenttype[0])
 		if err != nil {
+			log.Error(r.Context(), err, "")
 			httputil.AsErrorResponse(w, ErrUpload, http.StatusInternalServerError)
 			return
 		}

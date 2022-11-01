@@ -10,9 +10,9 @@ import (
 	"github.com/caarlos0/env/v6"
 	"github.com/joho/godotenv"
 
-	"pavel-fokin/images-storage/internal/imagesstorage"
-	"pavel-fokin/images-storage/internal/server"
-	"pavel-fokin/images-storage/internal/storage"
+	"github.com/pavel-fokin/images-storage/internal/imagesstorage"
+	"github.com/pavel-fokin/images-storage/internal/server"
+	"github.com/pavel-fokin/images-storage/internal/storage"
 )
 
 type Config struct {

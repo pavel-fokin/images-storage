@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"pavel-fokin/images-storage/internal/imagesstorage"
+	"github.com/pavel-fokin/images-storage/internal/imagesstorage"
 )
 
 type Images struct {

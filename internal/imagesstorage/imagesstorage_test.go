@@ -51,7 +51,7 @@ func (m *StorageMock) Metadata(
 	return Image{}, nil
 }
 
-func Test_ImagesAdd(t *testing.T) {
+func Test_ImagesAddFailure(t *testing.T) {
 	// setup
 	storage := &StorageMock{}
 	storage.On("Upload").Return()
@@ -62,7 +62,7 @@ func Test_ImagesAdd(t *testing.T) {
 	_, err := images.Add(context.TODO(), bytes.NewReader([]byte{}), "image/png")
 
 	// assert
-	assert.NoError(t, err)
+	assert.Error(t, err)
 }
 
 func Test_ImagesList(t *testing.T) {
