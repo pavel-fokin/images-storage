@@ -11,7 +11,7 @@ type Error struct {
 	Message string `json:"message"`
 }
 
-// ErrorResponse
+// ErrorResponse.
 type ErrorResponse struct {
 	Data struct {
 		Errors []Error `json:"errors"`

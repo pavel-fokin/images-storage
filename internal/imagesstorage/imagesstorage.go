@@ -23,6 +23,7 @@ type Image struct {
 	UploadedAt  string
 }
 
+// ImageStorage keeps the login for images-storage functionality.
 type ImagesStorage struct {
 	storage Storage
 }
@@ -44,6 +45,7 @@ func (i *ImagesStorage) Add(
 		return Image{}, fmt.Errorf("Add(): %w", err)
 	}
 
+	// FIXME Duplication
 	width, height, err := GetWidthHeight(bytes.NewReader(buf))
 	if err != nil {
 		return Image{}, fmt.Errorf("Add(): %w", err)
@@ -73,6 +75,7 @@ func (i *ImagesStorage) Update(
 		return Image{}, fmt.Errorf("Updates(): %w", err)
 	}
 
+	// FIXME Duplication
 	width, height, err := GetWidthHeight(bytes.NewReader(buf))
 	if err != nil {
 		return Image{}, fmt.Errorf("Update(): %w", err)
@@ -109,11 +112,9 @@ func (i *ImagesStorage) Data(
 		return bytes.NewReader([]byte{}), "", fmt.Errorf("Data(): %w", err)
 	}
 
-	if bbox.Valid() {
-		data, err = CutOut(data, bbox)
-		if err != nil {
-			return bytes.NewReader([]byte{}), "", fmt.Errorf("Data(): %w", err)
-		}
+	data, err = CutOut(data, bbox)
+	if err != nil {
+		return bytes.NewReader([]byte{}), "", fmt.Errorf("Data(): %w", err)
 	}
 
 	return data, contenttype, nil

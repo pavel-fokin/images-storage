@@ -17,7 +17,7 @@ type BBox struct {
 }
 
 func (bb BBox) Valid() bool {
-	return (bb.X > 0 || bb.Y > 0) || (bb.W > 0 && bb.H > 0)
+	return (bb.X >= 0 || bb.Y >= 0) && (bb.W > 0 && bb.H > 0)
 }
 
 func GetWidthHeight(imagedata io.Reader) (width int, height int, err error) {

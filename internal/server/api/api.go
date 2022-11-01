@@ -14,12 +14,14 @@ import (
 )
 
 var (
-	ErrValidate = errors.New("'Content-Type' is required")
-	ErrUpload   = errors.New("Coudn't upload an image")
-	ErrNotFound = errors.New("Image not found")
-	ErrUnknown  = errors.New(`Unkown error ¯\_(ツ)_/¯`)
+	ErrValidate     = errors.New("'Content-Type' is required")
+	ErrUpload       = errors.New("Coudn't upload an image")
+	ErrNotFound     = errors.New("Image not found")
+	ErrUnknown      = errors.New(`Unknown error ¯\_(ツ)_/¯`)
+	ErrBBoxValidate = errors.New("'bbox' parse error")
 )
 
+// ImageStorage is an interface to images-storage functionality.
 type ImagesStorage interface {
 	List(ctx context.Context) ([]imagesstorage.Image, error)
 	Add(
@@ -44,45 +46,12 @@ func ImagesGet(images ImagesStorage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		images, err := images.List(r.Context())
 		if err != nil {
-			switch {
-			case errors.Is(err, imagesstorage.ErrImageNotExist):
-				httputil.AsErrorResponse(w, ErrNotFound, http.StatusNotFound)
-			default:
-				log.Error(r.Context(), err, "")
-				httputil.AsErrorResponse(w, ErrUpload, http.StatusInternalServerError)
-			}
+			log.Error(r.Context(), err, "")
+			httputil.AsErrorResponse(w, ErrUnknown, http.StatusInternalServerError)
 			return
 		}
 
 		resp := asImagesGetResponse(images)
-
-		httputil.AsSuccessResponse(w, resp, http.StatusOK)
-	}
-}
-
-func ImagesPutByID(images ImagesStorage) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		id := chi.URLParam(r, "id")
-
-		contenttype, ok := r.Header["Content-Type"]
-		if !ok {
-			httputil.AsErrorResponse(w, ErrValidate, http.StatusBadRequest)
-			return
-		}
-
-		image, err := images.Update(r.Context(), id, r.Body, contenttype[0])
-		if err != nil {
-			switch {
-			case errors.Is(err, imagesstorage.ErrImageNotExist):
-				httputil.AsErrorResponse(w, ErrNotFound, http.StatusNotFound)
-			default:
-				log.Error(r.Context(), err, "")
-				httputil.AsErrorResponse(w, ErrUpload, http.StatusInternalServerError)
-			}
-			return
-		}
-
-		resp := asImagesPostResponse(image)
 
 		httputil.AsSuccessResponse(w, resp, http.StatusOK)
 	}
@@ -116,10 +85,10 @@ func ImagesGetDataByID(images ImagesStorage) http.HandlerFunc {
 		id := chi.URLParam(r, "id")
 
 		// TODO Add validation
-		bboxParam := r.URL.Query().Get("bbox")
-		bbox := imagesstorage.BBox{}
-		if bboxParam != "" {
-			bbox.X, bbox.Y, bbox.W, bbox.H = ParseBBoxParam(bboxParam)
+		bbox, err := ParseBBoxParam(r)
+		if err != nil {
+			httputil.AsErrorResponse(w, ErrBBoxValidate, http.StatusBadRequest)
+			return
 		}
 
 		// TODO More errors handling
@@ -159,5 +128,33 @@ func ImagesPost(images ImagesStorage) http.HandlerFunc {
 		resp := asImagesPostResponse(image)
 
 		httputil.AsSuccessResponse(w, resp, http.StatusCreated)
+	}
+}
+
+func ImagesPutByID(images ImagesStorage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := chi.URLParam(r, "id")
+
+		contenttype, ok := r.Header["Content-Type"]
+		if !ok {
+			httputil.AsErrorResponse(w, ErrValidate, http.StatusBadRequest)
+			return
+		}
+
+		image, err := images.Update(r.Context(), id, r.Body, contenttype[0])
+		if err != nil {
+			switch {
+			case errors.Is(err, imagesstorage.ErrImageNotExist):
+				httputil.AsErrorResponse(w, ErrNotFound, http.StatusNotFound)
+			default:
+				log.Error(r.Context(), err, "")
+				httputil.AsErrorResponse(w, ErrUpload, http.StatusInternalServerError)
+			}
+			return
+		}
+
+		resp := asImagesPostResponse(image)
+
+		httputil.AsSuccessResponse(w, resp, http.StatusOK)
 	}
 }
