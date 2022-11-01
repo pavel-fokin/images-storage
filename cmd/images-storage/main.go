@@ -21,12 +21,12 @@ type Config struct {
 }
 
 func ReadConfig() *Config {
-	envfile := "local.env"
+	envFile := "local.env"
 	if os.Getenv("IMAGES_STORAGE_ENV_FILE") != "" {
-		envfile = os.Getenv("IMAGES_STORAGE_ENV_FILE")
+		envFile = os.Getenv("IMAGES_STORAGE_ENV_FILE")
 	}
 
-	err := godotenv.Load(envfile)
+	err := godotenv.Load(envFile)
 	if err != nil {
 		log.Println("Error loading .env file")
 	}
@@ -46,10 +46,10 @@ func main() {
 
 	storage := storage.New(config.Storage)
 
-	imagesstorage := imagesstorage.New(storage)
+	imagesStorage := imagesstorage.New(storage)
 
 	httpServer := server.New(config.Server)
-	httpServer.SetupImagesAPIRoutes(imagesstorage)
+	httpServer.SetupImagesAPIRoutes(imagesStorage)
 
 	go httpServer.Start()
 

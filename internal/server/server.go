@@ -8,10 +8,12 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/httplog"
 )
 
 type Config struct {
 	Port            string `env:"PORT" envDefault:"8080"`
+	HandlerTimeout  int    `env:"IMAGES_SERVER_HANDLER_TIMEOUT" envDefault:"30"`
 	ReadTimeout     int    `env:"IMAGES_SERVER_READ_TIMEOUT" envDefault:"30"`
 	WriteTimeout    int    `env:"IMAGES_SERVER_WRITE_TIMEOUT" envDefault:"30"`
 	ShutdownTimeout int    `env:"IMAGES_SERVER_SHUTDOWN_TIMEOUT" envDefault:"30"`
@@ -24,9 +26,18 @@ type Server struct {
 }
 
 func New(config Config) *Server {
+	logger := httplog.NewLogger("images-storage", httplog.Options{
+		Concise: true,
+		JSON:    true,
+	})
+
 	router := chi.NewRouter()
 
-	router.Use(middleware.Logger)
+	router.Use(middleware.Timeout(
+		time.Duration(config.HandlerTimeout) * time.Second),
+	)
+	router.Use(httplog.RequestLogger(logger))
+	// router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
 
 	server := &http.Server{
