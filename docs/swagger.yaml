@@ -1,0 +1,70 @@
+basePath: /
+definitions:
+  api.ImagesGetResp:
+    properties:
+      data:
+        properties:
+          images:
+            items:
+              $ref: '#/definitions/api.ResponseImage'
+            type: array
+        type: object
+    type: object
+  api.ResponseImage:
+    properties:
+      filesize:
+        type: integer
+      filetype:
+        type: string
+      height:
+        type: integer
+      name:
+        type: string
+      uploadedAt:
+        type: string
+      width:
+        type: integer
+    type: object
+  httputil.Error:
+    properties:
+      message:
+        type: string
+    type: object
+  httputil.ErrorResponse:
+    properties:
+      data:
+        properties:
+          errors:
+            items:
+              $ref: '#/definitions/httputil.Error'
+            type: array
+        type: object
+    type: object
+info:
+  contact: {}
+  description: Images Storage is a service that lets you store, retrieve, and cutout
+    images.
+  title: Images Storage API
+  version: 0.0.1
+paths:
+  /v1/images:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.ImagesGetResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+      summary: List metadata for stored images.
+      tags:
+      - images-storage
+swagger: "2.0"

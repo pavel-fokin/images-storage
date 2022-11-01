@@ -38,6 +38,10 @@ func ReadConfig() *Config {
 	return cfg
 }
 
+// @Title Images Storage API
+// @Version 0.0.1
+// @Description Images Storage is a service that lets you store, retrieve, and cutout images.
+// @BasePath /
 func main() {
 	config := ReadConfig()
 

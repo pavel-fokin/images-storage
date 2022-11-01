@@ -9,6 +9,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/httplog"
+	"github.com/swaggo/http-swagger"
+
+	_ "github.com/pavel-fokin/images-storage/docs"
 )
 
 type Config struct {
@@ -39,6 +42,10 @@ func New(config Config) *Server {
 	router.Use(httplog.RequestLogger(logger))
 	// router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
+
+	router.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("doc.json"), //The url pointing to API definition
+	))
 
 	server := &http.Server{
 		Addr:         ":" + config.Port,

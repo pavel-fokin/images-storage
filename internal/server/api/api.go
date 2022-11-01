@@ -42,6 +42,13 @@ func StatusOK(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// @Summary   List metadata for stored images.
+// @Tags      images-storage
+// @Produce   json
+// @Success   200        {object}  ImagesGetResp
+// @Failure   400        {object}  httputil.ErrorResponse
+// @Failure   500        {object}  httputil.ErrorResponse
+// @Router    /v1/images [get]
 func ImagesGet(images ImagesStorage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		images, err := images.List(r.Context())
@@ -69,7 +76,6 @@ func ImagesGetByID(images ImagesStorage) http.HandlerFunc {
 			default:
 				log.Error(r.Context(), err, "")
 				httputil.AsErrorResponse(w, ErrUpload, http.StatusInternalServerError)
-
 			}
 			return
 		}
