@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"strconv"
 
 	"io"
 	"log"
@@ -113,24 +114,37 @@ func (s *Storage) Upload(
 	wc.Metadata = metadata
 	defer wc.Close()
 
-	_, err := io.Copy(wc, data)
+	buf, err := io.ReadAll(data)
+	if err != nil {
+		return imagesstorage.Image{}, fmt.Errorf("Upload(): %w", err)
+	}
+	_, err = wc.Write(buf)
 	if err != nil {
 		return imagesstorage.Image{}, fmt.Errorf("Upload(): %w", err)
 	}
 
+	width, _ := strconv.Atoi(metadata["ImageWidth"])
+	height, _ := strconv.Atoi(metadata["ImageHeight"])
 	image := imagesstorage.Image{
 		Name:        filename,
 		ContentType: contenttype,
+		Width:       width,
+		Height:      height,
+		Size:        len(buf),
 	}
 
 	return image, nil
 }
 
 func (s *Storage) asImage(obj *storage.ObjectAttrs) imagesstorage.Image {
+	width, _ := strconv.Atoi(obj.Metadata["ImageWidth"])
+	height, _ := strconv.Atoi(obj.Metadata["ImageHeight"])
 	return imagesstorage.Image{
 		Name:        obj.Name,
 		ContentType: obj.ContentType,
 		Size:        int(obj.Size),
 		UploadedAt:  obj.Updated.String(),
+		Width:       width,
+		Height:      height,
 	}
 }
