@@ -3,14 +3,13 @@ package storage
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
-	"strconv"
-
 	"io"
 	"log"
+	"strconv"
 
 	"cloud.google.com/go/storage"
-	"github.com/pkg/errors"
 	"google.golang.org/api/iterator"
 
 	"github.com/pavel-fokin/images-storage/internal/imagesstorage"
@@ -126,7 +125,7 @@ func (s *Storage) Upload(
 	width, _ := strconv.Atoi(metadata["ImageWidth"])
 	height, _ := strconv.Atoi(metadata["ImageHeight"])
 	image := imagesstorage.Image{
-		Name:        filename,
+		UUID:        filename,
 		ContentType: contenttype,
 		Width:       width,
 		Height:      height,
@@ -140,7 +139,7 @@ func (s *Storage) asImage(obj *storage.ObjectAttrs) imagesstorage.Image {
 	width, _ := strconv.Atoi(obj.Metadata["ImageWidth"])
 	height, _ := strconv.Atoi(obj.Metadata["ImageHeight"])
 	return imagesstorage.Image{
-		Name:        obj.Name,
+		UUID:        obj.Name,
 		ContentType: obj.ContentType,
 		Size:        int(obj.Size),
 		UploadedAt:  obj.Updated.String(),

@@ -77,10 +77,10 @@ const docTemplate = `{
                 "height": {
                     "type": "integer"
                 },
-                "name": {
+                "uploadedAt": {
                     "type": "string"
                 },
-                "uploadedAt": {
+                "uuid": {
                     "type": "string"
                 },
                 "width": {

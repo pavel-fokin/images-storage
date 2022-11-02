@@ -15,7 +15,7 @@ var (
 )
 
 type Image struct {
-	Name        string
+	UUID        string
 	ContentType string
 	Width       int
 	Height      int

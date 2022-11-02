@@ -18,9 +18,9 @@ definitions:
         type: string
       height:
         type: integer
-      name:
-        type: string
       uploadedAt:
+        type: string
+      uuid:
         type: string
       width:
         type: integer

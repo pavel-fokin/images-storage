@@ -2,11 +2,11 @@ package api
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/juju/errors"
 
 	"github.com/pavel-fokin/images-storage/internal/imagesstorage"
 	"github.com/pavel-fokin/images-storage/internal/log"

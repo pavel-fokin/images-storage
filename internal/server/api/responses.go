@@ -3,7 +3,7 @@ package api
 import "github.com/pavel-fokin/images-storage/internal/imagesstorage"
 
 type ResponseImage struct {
-	Name       string `json:"name"`
+	UUID       string `json:"uuid"`
 	FileType   string `json:"filetype"`
 	Width      int    `json:"width"`
 	Height     int    `json:"height"`
@@ -25,7 +25,7 @@ type ImagesPostResp struct {
 
 func asResponseImage(image imagesstorage.Image) ResponseImage {
 	return ResponseImage{
-		Name:       image.Name,
+		UUID:       image.UUID,
 		FileType:   image.ContentType,
 		Width:      image.Width,
 		Height:     image.Height,
