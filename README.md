@@ -2,11 +2,8 @@
 
 `images-storage` is a service that lets you store, retrieve, and cutout images.
 
-This service is deployed as the `Google Cloud Run` - https://images-storage-kgff63kbfq-lz.a.run.app
+This service can be deployed as the `Google Cloud Run`
 and uses `Google Cloud Storage` as the database to store images and related metadata.
-
-Swagger Documentation is available - https://images-storage-kgff63kbfq-lz.a.run.app/swagger/index.html
-**NOTE**: Just 1 endpoint is documented for this demo.
 
 ## Requirements
 
