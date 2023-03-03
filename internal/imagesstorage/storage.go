@@ -8,7 +8,7 @@ import (
 type Storage interface {
 	List(ctx context.Context) ([]Image, error)
 	Upload(
-		ctx context.Context, uuid string, contenttype string, data io.Reader, metadata map[string]string,
+		ctx context.Context, image Image,
 	) (Image, error)
 	DoesExist(
 		ctx context.Context, uuid string,

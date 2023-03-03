@@ -1,9 +1,7 @@
 package api
 
 import (
-	"context"
 	"errors"
-	"io"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -15,28 +13,11 @@ import (
 
 var (
 	ErrValidate     = errors.New("'Content-Type' is required")
-	ErrUpload       = errors.New("Coudn't upload an image")
-	ErrNotFound     = errors.New("Image not found")
-	ErrUnknown      = errors.New(`Unknown error ¯\_(ツ)_/¯`)
+	ErrUpload       = errors.New("coudn't upload an image")
+	ErrNotFound     = errors.New("image not found")
+	ErrUnknown      = errors.New(`unknown error ¯\_(ツ)_/¯`)
 	ErrBBoxValidate = errors.New("'bbox' parse error")
 )
-
-// ImageStorage is an interface to images-storage functionality.
-type ImagesStorage interface {
-	List(ctx context.Context) ([]imagesstorage.Image, error)
-	Add(
-		ctx context.Context, data io.Reader, contenttype string,
-	) (imagesstorage.Image, error)
-	Update(
-		ctx context.Context, uuid string, data io.Reader, contenttype string,
-	) (imagesstorage.Image, error)
-	Metadata(
-		ctx context.Context, uuid string,
-	) (imagesstorage.Image, error)
-	Data(
-		ctx context.Context, uuid string, bbox imagesstorage.BBox,
-	) (data io.Reader, contenttype string, err error)
-}
 
 func StatusOK(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)

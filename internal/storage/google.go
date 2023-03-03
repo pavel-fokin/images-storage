@@ -106,30 +106,21 @@ func (s *Storage) Download(
 }
 
 func (s *Storage) Upload(
-	ctx context.Context, filename string, contenttype string, data io.Reader, metadata map[string]string,
+	ctx context.Context, image imagesstorage.Image,
 ) (imagesstorage.Image, error) {
-	wc := s.bucket.Object(filename).NewWriter(ctx)
-	wc.ContentType = contenttype
+	wc := s.bucket.Object(image.UUID).NewWriter(ctx)
+	wc.ContentType = image.ContentType
+
+	metadata := map[string]string{
+		"ImageWidth":  fmt.Sprint(image.Width),
+		"ImageHeight": fmt.Sprint(image.Height),
+	}
 	wc.Metadata = metadata
 	defer wc.Close()
 
-	buf, err := io.ReadAll(data)
+	_, err := wc.Write(image.Data)
 	if err != nil {
 		return imagesstorage.Image{}, fmt.Errorf("Upload(): %w", err)
-	}
-	_, err = wc.Write(buf)
-	if err != nil {
-		return imagesstorage.Image{}, fmt.Errorf("Upload(): %w", err)
-	}
-
-	width, _ := strconv.Atoi(metadata["ImageWidth"])
-	height, _ := strconv.Atoi(metadata["ImageHeight"])
-	image := imagesstorage.Image{
-		UUID:        filename,
-		ContentType: contenttype,
-		Width:       width,
-		Height:      height,
-		Size:        len(buf),
 	}
 
 	return image, nil

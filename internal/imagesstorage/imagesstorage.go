@@ -14,16 +14,7 @@ var (
 	ErrImageNotExist = errors.New("Image doesn't exist")
 )
 
-type Image struct {
-	UUID        string
-	ContentType string
-	Width       int
-	Height      int
-	Size        int
-	UploadedAt  string
-}
-
-// ImageStorage keeps the login for images-storage functionality.
+// ImageStorage keeps the logic for images-storage functionality.
 type ImagesStorage struct {
 	storage Storage
 }
@@ -37,25 +28,12 @@ func New(storage Storage) *ImagesStorage {
 func (i *ImagesStorage) Add(
 	ctx context.Context, data io.Reader, contenttype string,
 ) (Image, error) {
-
-	uuid := uuid.New().String()
-
-	buf, err := io.ReadAll(data)
+	image, err := NewImage(uuid.New(), contenttype, data)
 	if err != nil {
 		return Image{}, fmt.Errorf("Add(): %w", err)
 	}
 
-	// FIXME Duplication
-	width, height, err := GetWidthHeight(bytes.NewReader(buf))
-	if err != nil {
-		return Image{}, fmt.Errorf("Add(): %w", err)
-	}
-	metadata := map[string]string{
-		"ImageWidth":  fmt.Sprint(width),
-		"ImageHeight": fmt.Sprint(height),
-	}
-
-	image, err := i.storage.Upload(ctx, uuid, contenttype, bytes.NewReader(buf), metadata)
+	image, err = i.storage.Upload(ctx, image)
 	if err != nil {
 		return Image{}, fmt.Errorf("Add(): %w", err)
 	}
@@ -64,30 +42,20 @@ func (i *ImagesStorage) Add(
 }
 
 func (i *ImagesStorage) Update(
-	ctx context.Context, uuid string, data io.Reader, contenttype string,
+	ctx context.Context, id string, data io.Reader, contenttype string,
 ) (Image, error) {
-	if doesExist := i.storage.DoesExist(ctx, uuid); !doesExist {
+	if doesExist := i.storage.DoesExist(ctx, id); !doesExist {
 		return Image{}, ErrImageNotExist
 	}
 
-	buf, err := io.ReadAll(data)
-	if err != nil {
-		return Image{}, fmt.Errorf("Updates(): %w", err)
-	}
-
-	// FIXME Duplication
-	width, height, err := GetWidthHeight(bytes.NewReader(buf))
+	image, err := NewImage(uuid.MustParse(id), contenttype, data)
 	if err != nil {
 		return Image{}, fmt.Errorf("Update(): %w", err)
 	}
-	metadata := map[string]string{
-		"ImageWidth":  fmt.Sprint(width),
-		"ImageHeight": fmt.Sprint(height),
-	}
 
-	image, err := i.storage.Upload(ctx, uuid, contenttype, bytes.NewReader(buf), metadata)
+	image, err = i.storage.Upload(ctx, image)
 	if err != nil {
-		return Image{}, fmt.Errorf("Updates(): %w", err)
+		return Image{}, fmt.Errorf("Update(): %w", err)
 	}
 
 	return image, nil
