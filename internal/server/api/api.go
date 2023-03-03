@@ -7,8 +7,8 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/pavel-fokin/images-storage/internal/imagesstorage"
-	"github.com/pavel-fokin/images-storage/internal/log"
 	"github.com/pavel-fokin/images-storage/internal/server/httputil"
+	"github.com/pavel-fokin/images-storage/internal/server/log"
 )
 
 var (
