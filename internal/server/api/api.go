@@ -118,7 +118,8 @@ func ImagesPost(images ImagesStorage) http.HandlerFunc {
 	}
 }
 
-func ImagesPutByID(images ImagesStorage) http.HandlerFunc {
+// ImagesPatchByID updates image's data by ID.
+func ImagesPatchByID(images ImagesStorage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
 
