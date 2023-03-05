@@ -12,23 +12,18 @@ import (
 	"image/png"
 )
 
+// BBox is a bounding box for image data.
 type BBox struct {
 	X, Y, W, H int
 }
 
+// Valid verifies if a bounding box is valid.
 func (bb BBox) Valid() bool {
 	return (bb.X >= 0 || bb.Y >= 0) && (bb.W > 0 && bb.H > 0)
 }
 
-func GetWidthHeight(imagedata io.Reader) (width int, height int, err error) {
-	img, _, err := image.Decode(imagedata)
-	if err != nil {
-		return 0, 0, fmt.Errorf("GetWidthHeight(): %w", err)
-	}
-	return img.Bounds().Max.X, img.Bounds().Max.Y, nil
-}
-
-func CutOut(imagedata io.Reader, bbox BBox) (io.Reader, error) {
+// CutOut an image by a bounding box.
+func (bb BBox) CutOut(imagedata io.Reader) (io.Reader, error) {
 	fullimage, formatName, err := image.Decode(imagedata)
 	if err != nil {
 		return bytes.NewReader([]byte{}), fmt.Errorf("CutOut(): %w", err)
@@ -36,7 +31,7 @@ func CutOut(imagedata io.Reader, bbox BBox) (io.Reader, error) {
 
 	subimage := fullimage.(interface {
 		SubImage(r image.Rectangle) image.Image
-	}).SubImage(image.Rect(bbox.X, bbox.Y, bbox.W, bbox.H))
+	}).SubImage(image.Rect(bb.X, bb.Y, bb.W, bb.H))
 
 	buf := new(bytes.Buffer)
 

@@ -25,6 +25,7 @@ func New(storage Storage) *ImagesStorage {
 	}
 }
 
+// Add a new image.
 func (i *ImagesStorage) Add(
 	ctx context.Context, data io.Reader, contenttype string,
 ) (Image, error) {
@@ -41,6 +42,7 @@ func (i *ImagesStorage) Add(
 	return image, nil
 }
 
+// Update image data.
 func (i *ImagesStorage) Update(
 	ctx context.Context, id string, data io.Reader, contenttype string,
 ) (Image, error) {
@@ -61,6 +63,7 @@ func (i *ImagesStorage) Update(
 	return image, nil
 }
 
+// Metadata returns image metadata.
 func (i *ImagesStorage) Metadata(
 	ctx context.Context, uuid string,
 ) (Image, error) {
@@ -72,6 +75,7 @@ func (i *ImagesStorage) Metadata(
 	return image, nil
 }
 
+// Data returns image data.
 func (i *ImagesStorage) Data(
 	ctx context.Context, uuid string, bbox BBox,
 ) (io.Reader, string, error) {
@@ -80,7 +84,7 @@ func (i *ImagesStorage) Data(
 		return bytes.NewReader([]byte{}), "", fmt.Errorf("Data(): %w", err)
 	}
 
-	data, err = CutOut(data, bbox)
+	data, err = bbox.CutOut(data)
 	if err != nil {
 		return bytes.NewReader([]byte{}), "", fmt.Errorf("Data(): %w", err)
 	}
@@ -88,6 +92,7 @@ func (i *ImagesStorage) Data(
 	return data, contenttype, nil
 }
 
+// List available images.
 func (i *ImagesStorage) List(ctx context.Context) ([]Image, error) {
 	images, err := i.storage.List(ctx)
 	if err != nil {
