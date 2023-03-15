@@ -19,6 +19,8 @@ type Config struct {
 	BucketName string `env:"IMAGES_STORAGE_GOOGLE_BUCKET_NAME,notEmpty" envDefault:""`
 }
 
+var _ imagesstorage.Storage = (*Storage)(nil)
+
 type Storage struct {
 	config Config
 	client *storage.Client
